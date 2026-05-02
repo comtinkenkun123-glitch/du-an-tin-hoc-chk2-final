@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Phân Loại Cà Chua - GitHub Version</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; text-align: center; background-color: #f4f7f6; padding: 20px; }
+        .container { background: white; max-width: 600px; margin: 0 auto; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { color: #e74c3c; margin-bottom: 10px; }
+        #webcam-container, #image-container { margin: 20px auto; border: 5px solid #2c3e50; border-radius: 15px; overflow: hidden; background: #ecf0f1; display: inline-block; width: 300px; height: 300px; position: relative; }
+        #label-container { font-size: 28px; font-weight: bold; margin: 20px 0; color: #2980b9; }
+        #action-container { font-size: 20px; padding: 15px; border: 3px dashed #bdc3c7; border-radius: 10px; min-height: 40px; transition: 0.3s; }
+        button { padding: 15px 30px; font-size: 18px; background-color: #27ae60; color: white; border: none; border-radius: 8px; cursor: pointer; transition: 0.3s; margin: 10px; }
+        button:hover { background-color: #1e8449; transform: scale(1.05); }
+        input[type="file"] { margin: 20px 0; font-size: 16px; }
+        .status-loading { color: #f39c12; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Hệ Thống Phân Loại Cà Chua</h1>
+    <p>Dự án Tin học - HK2</p>
+    
+    <div class="btn-group">
+        <button type="button" onclick="init()">Bật Camera Nhận Diện</button>
+    </div>
+
+    <div id="webcam-container">
+        <div id="loading-text" style="padding-top: 130px; color: #7f8c8d;">Camera sẽ hiện ở đây</div>
+    </div>
+    
+    <div style="margin: 20px 0; font-weight: bold; color: #7f8c8d;">--- HOẶC ---</div>
+    
+    <label for="image-upload" style="cursor: pointer; background: #3498db; color: white; padding: 10px 20px; border-radius: 5px;">Tải ảnh từ máy tính</label>
+    <input type="file" id="image-upload" accept="image/*" onchange="readURL(this);" style="display: none;">
+    
+    <div id="image-container" style="display: none;">
+        <img id="uploaded-image" src="#" alt="Ảnh cà chua" style="width: 100%; height: 100%; object-fit: cover;"/>
+    </div>
+
+    <div id="label-container" class="status-loading">Nhấn nút để bắt đầu...</div>
+    <div id="action-container">Hành động của máy sẽ hiển thị tại đây</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+
+<script type="text/javascript">
+    // ĐƯỜNG DẪN QUAN TRỌNG: Đã trỏ thẳng vào Repository của bạn trên GitHub
+    const URL = "https://comtinkenkun123-glitch.github.io/du-an-tin-hoc-chk2-2/";
+
+    let model, webcam, labelContainer, maxPredictions;
+
+    // Hàm khởi động AI
+    async function init() {
+        const modelURL = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
+
+        document.getElementById("label-container").innerHTML = "⌛ Đang tải bộ não AI...";
+        
+        try {
+            // Tải mô hình từ GitHub
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+
+            // Cấu hình Webcam
+            const flip = true; 
+            webcam = new tmImage.Webcam(300, 300, flip);
+            await webcam.setup(); 
+            await webcam.play();
+            
+            document.getElementById("loading-text").style.display = "none";
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+            document.getElementById("label-container").innerHTML = "✅ AI đã sẵn sàng!";
+            document.getElementById("label-container").classList.remove("status-loading");
+            
+            window.requestAnimationFrame(loop);
+        } catch (e) {
+            console.error(e);
+            document.getElementById("label-container").innerHTML = "❌ Lỗi: Không tìm thấy file model trên GitHub!";
+        }
+    }
+
+    async function loop() {
+        webcam.update(); 
+        await predict(webcam.canvas);
+        window.requestAnimationFrame(loop);
+    }
+
+    // Hàm xử lý khi người dùng chọn file ảnh
+    async function readURL(input) {
+        if (!model) {
+            document.getElementById("label-container").innerHTML = "⌛ Đang tải AI...";
+            model = await tmImage.load(URL + "model.json", URL + "metadata.json");
+            maxPredictions = model.getTotalClasses();
+        }
+
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                const imgElement = document.getElementById('uploaded-image');
+                imgElement.src = e.target.result;
+                
+                document.getElementById("webcam-container").style.display = "none";
+                document.getElementById("image-container").style.display = "inline-block";
+                document.getElementById("label-container").classList.remove("status-loading");
+
+                imgElement.onload = function() {
+                    predict(imgElement);
+                };
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Hàm dự đoán và đưa ra quyết định
+    async function predict(inputElement) {
+        const prediction = await model.predict(inputElement);
+        
+        let highestProb = 0;
+        let bestClass = "";
+
+        for (let i = 0; i < maxPredictions; i++) {
+            if (prediction[i].probability > highestProb) {
+                highestProb = prediction[i].probability;
+                bestClass = prediction[i].className;
+            }
+        }
+
+        let percent = Math.round(highestProb * 100);
+        document.getElementById("label-container").innerHTML = bestClass + " (" + percent + "%)";
+
+        const actionBox = document.getElementById("action-container");
+        
+        // LOGIC QUYẾT ĐỊNH (MTC 3.d)
+        if (percent > 80) {
+            if (bestClass === "Ca chua tot") {
+                actionBox.innerHTML = "🟢 KẾT QUẢ: Cà chua TỐT -> Chuyển về kho ĐÓNG GÓI";
+                actionBox.style.backgroundColor = "#e8f6ef";
+                actionBox.style.color = "#27ae60";
+                actionBox.style.borderColor = "#27ae60";
+            } else {
+                actionBox.innerHTML = "🔴 KẾT QUẢ: Cà chua HỎNG -> Chuyển về khu Ủ PHÂN";
+                actionBox.style.backgroundColor = "#fdf2f2";
+                actionBox.style.color = "#e74c3c";
+                actionBox.style.borderColor = "#e74c3c";
+            }
+        } else {
+            actionBox.innerHTML = "🟡 CẢNH BÁO: Không rõ ràng! Cần người kiểm tra.";
+            actionBox.style.backgroundColor = "#fff9e6";
+            actionBox.style.color = "#f39c12";
+            actionBox.style.borderColor = "#f39c12";
+        }
+    }
+</script>
+
+</body>
+</html>
