@@ -3,57 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Phân Loại Cà Chua - GitHub Version</title>
+    <title>AI Phân Loại Cà Chua - Dashboard Pro</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; text-align: center; background-color: #f4f7f6; padding: 20px; }
-        .container { background: white; max-width: 600px; margin: 0 auto; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h1 { color: #e74c3c; margin-bottom: 10px; }
-        #webcam-container, #image-container { margin: 20px auto; border: 5px solid #2c3e50; border-radius: 15px; overflow: hidden; background: #ecf0f1; display: inline-block; width: 300px; height: 300px; position: relative; }
-        #label-container { font-size: 28px; font-weight: bold; margin: 20px 0; color: #2980b9; }
-        #action-container { font-size: 20px; padding: 15px; border: 3px dashed #bdc3c7; border-radius: 10px; min-height: 40px; transition: 0.3s; }
-        button { padding: 15px 30px; font-size: 18px; background-color: #27ae60; color: white; border: none; border-radius: 8px; cursor: pointer; transition: 0.3s; margin: 10px; }
-        button:hover { background-color: #1e8449; transform: scale(1.05); }
-        input[type="file"] { margin: 20px 0; font-size: 16px; }
+        /* Giao diện được nâng cấp bắt mắt hơn */
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            text-align: center; 
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0; padding: 20px; min-height: 100vh;
+        }
+        .container { 
+            background: rgba(255, 255, 255, 0.95); 
+            max-width: 800px; margin: 0 auto; padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1); 
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        h1 { color: #e74c3c; margin-bottom: 5px; font-size: 32px; }
+        p.subtitle { color: #7f8c8d; margin-bottom: 25px; font-size: 16px; }
+        
+        .main-layout { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+        .vision-section { flex: 1; min-width: 300px; }
+        .dashboard-section { flex: 1; min-width: 300px; background: #f8f9fa; padding: 20px; border-radius: 15px; border: 2px solid #e0e0e0; }
+
+        #webcam-container, #image-container { 
+            margin: 15px auto; border: 5px solid #2c3e50; border-radius: 15px; 
+            overflow: hidden; background: #ecf0f1; display: inline-block; 
+            width: 300px; height: 300px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        #label-container { font-size: 24px; font-weight: bold; margin: 15px 0; color: #2980b9; }
+        #action-container { 
+            font-size: 18px; padding: 15px; border: 3px dashed #bdc3c7; 
+            border-radius: 10px; min-height: 25px; transition: 0.3s; font-weight: bold;
+        }
+        
+        /* Dashboard Styles */
+        .stat-box { display: flex; justify-content: space-between; padding: 10px 15px; background: white; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-size: 18px; font-weight: bold;}
+        .stat-box.good { color: #27ae60; border-left: 5px solid #27ae60; }
+        .stat-box.bad { color: #e74c3c; border-left: 5px solid #e74c3c; }
+        .stat-box.total { color: #2980b9; border-left: 5px solid #2980b9; }
+
+        /* Buttons */
+        button { 
+            padding: 12px 25px; font-size: 16px; font-weight: bold; color: white; 
+            border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; margin: 5px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-camera { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .btn-camera:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.2); }
+        .btn-record { background: linear-gradient(135deg, #f1c40f, #f39c12); color: #2c3e50; font-size: 18px; width: 100%; margin: 15px 0;}
+        .btn-record:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.2); }
+        .btn-download { background: linear-gradient(135deg, #27ae60, #2ecc71); display: none; width: 100%; margin-top: 15px;}
+        .btn-download:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.2); }
+        
+        .upload-label { 
+            display: inline-block; cursor: pointer; background: linear-gradient(135deg, #9b59b6, #8e44ad); 
+            color: white; padding: 12px 25px; border-radius: 8px; font-weight: bold; margin-top: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s;
+        }
+        .upload-label:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.2); }
+        input[type="file"] { display: none; }
         .status-loading { color: #f39c12; font-style: italic; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Hệ Thống Phân Loại Cà Chua</h1>
-    <p>Dự án Tin học - HK2</p>
+    <h1>Hệ Thống Phân Loại Nông Sản AI</h1>
+    <p class="subtitle">Quét tự động - Thống kê tức thời - Xuất báo cáo nhanh chóng</p>
     
-    <div class="btn-group">
-        <button type="button" onclick="init()">Bật Camera Nhận Diện</button>
-    </div>
+    <div class="main-layout">
+        <div class="vision-section">
+            <button class="btn-camera" onclick="init()">📸 Bật Camera</button>
+            <label for="image-upload" class="upload-label">📁 Tải Ảnh Lên</label>
+            <input type="file" id="image-upload" accept="image/*" onchange="readURL(this);">
 
-    <div id="webcam-container">
-        <div id="loading-text" style="padding-top: 130px; color: #7f8c8d;">Camera sẽ hiện ở đây</div>
-    </div>
-    
-    <div style="margin: 20px 0; font-weight: bold; color: #7f8c8d;">--- HOẶC ---</div>
-    
-    <label for="image-upload" style="cursor: pointer; background: #3498db; color: white; padding: 10px 20px; border-radius: 5px;">Tải ảnh từ máy tính</label>
-    <input type="file" id="image-upload" accept="image/*" onchange="readURL(this);" style="display: none;">
-    
-    <div id="image-container" style="display: none;">
-        <img id="uploaded-image" src="#" alt="Ảnh cà chua" style="width: 100%; height: 100%; object-fit: cover;"/>
-    </div>
+            <div id="webcam-container">
+                <div id="loading-text" style="padding-top: 130px; color: #7f8c8d; font-weight:bold;">Camera/Ảnh sẽ hiện ở đây</div>
+            </div>
+            
+            <div id="image-container" style="display: none;">
+                <img id="uploaded-image" src="#" alt="Ảnh cà chua" style="width: 100%; height: 100%; object-fit: cover;"/>
+            </div>
 
-    <div id="label-container" class="status-loading">Nhấn nút để bắt đầu...</div>
-    <div id="action-container">Hành động của máy sẽ hiển thị tại đây</div>
+            <div id="label-container" class="status-loading">Hãy bật camera hoặc tải ảnh...</div>
+            <div id="action-container">Hành động của máy sẽ hiển thị tại đây</div>
+        </div>
+
+        <div class="dashboard-section">
+            <h2 style="margin-top: 0; color: #2c3e50;">📊 Bảng Thống Kê</h2>
+            
+            <button class="btn-record" onclick="recordCurrentResult()">📝 Ghi nhận quả này</button>
+            
+            <div class="stat-box total">
+                <span>Tổng số đã quét:</span>
+                <span id="stat-total">0</span>
+            </div>
+            <div class="stat-box good">
+                <span>Cà chua TỐT (Đóng gói):</span>
+                <span id="stat-good">0</span>
+            </div>
+            <div class="stat-box bad">
+                <span>Cà chua HỎNG (Ủ phân):</span>
+                <span id="stat-bad">0</span>
+            </div>
+            
+            <p style="font-size: 13px; color: #7f8c8d; text-align: left; margin-top: 20px;">
+                *Hệ thống sẽ tổng hợp và cho phép tải báo cáo sau mỗi 5 lần quét thành công.
+            </p>
+
+            <button id="download-btn" class="btn-download" onclick="exportToWord()">📥 TẢI BÁO CÁO (.DOC)</button>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
 
 <script type="text/javascript">
-    // ĐƯỜNG DẪN QUAN TRỌNG: Đã trỏ thẳng vào Repository của bạn trên GitHub
     const URL = "https://comtinkenkun123-glitch.github.io/du-an-tin-hoc-chk2-2/";
 
-    let model, webcam, labelContainer, maxPredictions;
+    let model, webcam, maxPredictions;
+    
+    // Biến lưu trữ thống kê
+    let totalScans = 0;
+    let goodTomatoes = 0;
+    let badTomatoes = 0;
+    let currentPredictionClass = ""; // Lưu lại kết quả đang dự đoán trên màn hình
 
-    // Hàm khởi động AI
     async function init() {
         const modelURL = URL + "model.json";
         const metadataURL = URL + "metadata.json";
@@ -61,17 +138,17 @@
         document.getElementById("label-container").innerHTML = "⌛ Đang tải bộ não AI...";
         
         try {
-            // Tải mô hình từ GitHub
             model = await tmImage.load(modelURL, metadataURL);
             maxPredictions = model.getTotalClasses();
 
-            // Cấu hình Webcam
             const flip = true; 
             webcam = new tmImage.Webcam(300, 300, flip);
             await webcam.setup(); 
             await webcam.play();
             
             document.getElementById("loading-text").style.display = "none";
+            document.getElementById("image-container").style.display = "none";
+            document.getElementById("webcam-container").style.display = "inline-block";
             document.getElementById("webcam-container").appendChild(webcam.canvas);
             document.getElementById("label-container").innerHTML = "✅ AI đã sẵn sàng!";
             document.getElementById("label-container").classList.remove("status-loading");
@@ -84,12 +161,13 @@
     }
 
     async function loop() {
-        webcam.update(); 
-        await predict(webcam.canvas);
-        window.requestAnimationFrame(loop);
+        if(webcam) {
+            webcam.update(); 
+            await predict(webcam.canvas);
+            window.requestAnimationFrame(loop);
+        }
     }
 
-    // Hàm xử lý khi người dùng chọn file ảnh
     async function readURL(input) {
         if (!model) {
             document.getElementById("label-container").innerHTML = "⌛ Đang tải AI...";
@@ -115,7 +193,6 @@
         }
     }
 
-    // Hàm dự đoán và đưa ra quyết định
     async function predict(inputElement) {
         const prediction = await model.predict(inputElement);
         
@@ -134,25 +211,101 @@
 
         const actionBox = document.getElementById("action-container");
         
-        // LOGIC QUYẾT ĐỊNH (MTC 3.d)
+        // Lưu lại kết quả hiện tại để ghi nhận khi bấm nút
         if (percent > 80) {
+            currentPredictionClass = bestClass;
             if (bestClass === "Ca chua tot") {
-                actionBox.innerHTML = "🟢 KẾT QUẢ: Cà chua TỐT -> Chuyển về kho ĐÓNG GÓI";
+                actionBox.innerHTML = "🟢 KẾT QUẢ: Cà chua TỐT -> ĐÓNG GÓI";
                 actionBox.style.backgroundColor = "#e8f6ef";
                 actionBox.style.color = "#27ae60";
                 actionBox.style.borderColor = "#27ae60";
             } else {
-                actionBox.innerHTML = "🔴 KẾT QUẢ: Cà chua HỎNG -> Chuyển về khu Ủ PHÂN";
+                actionBox.innerHTML = "🔴 KẾT QUẢ: Cà chua HỎNG -> Ủ PHÂN";
                 actionBox.style.backgroundColor = "#fdf2f2";
                 actionBox.style.color = "#e74c3c";
                 actionBox.style.borderColor = "#e74c3c";
             }
         } else {
-            actionBox.innerHTML = "🟡 CẢNH BÁO: Không rõ ràng! Cần người kiểm tra.";
+            currentPredictionClass = "Unknown";
+            actionBox.innerHTML = "🟡 CẢNH BÁO: Không rõ ràng!";
             actionBox.style.backgroundColor = "#fff9e6";
             actionBox.style.color = "#f39c12";
             actionBox.style.borderColor = "#f39c12";
         }
+    }
+
+    // Hàm đếm số liệu khi người dùng bấm nút
+    function recordCurrentResult() {
+        if (currentPredictionClass === "Ca chua tot") {
+            goodTomatoes++;
+            totalScans++;
+        } else if (currentPredictionClass === "Ca chua hong") {
+            badTomatoes++;
+            totalScans++;
+        } else {
+            alert("Vui lòng đưa cà chua vào khung hình cho rõ nét trước khi ghi nhận!");
+            return;
+        }
+
+        // Cập nhật giao diện Dashboard
+        document.getElementById("stat-total").innerText = totalScans;
+        document.getElementById("stat-good").innerText = goodTomatoes;
+        document.getElementById("stat-bad").innerText = badTomatoes;
+
+        // Kiểm tra điều kiện 5 lần quét
+        if (totalScans > 0 && totalScans % 5 === 0) {
+            document.getElementById("download-btn").style.display = "block";
+            alert(`🎉 Đã phân loại được ${totalScans} quả. Bạn có thể tải báo cáo về máy!`);
+        }
+    }
+
+    // Hàm xuất dữ liệu ra file Word (.doc)
+    function exportToWord() {
+        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Bao Cao AI</title></head><body>";
+        const footer = "</body></html>";
+        
+        // Cấu trúc nội dung file Word
+        const content = `
+            <h1 style="text-align:center; color: #c0392b;">BÁO CÁO PHÂN LOẠI CÀ CHUA BẰNG TRÍ TUỆ NHÂN TẠO</h1>
+            <p style="text-align:center;"><em>Được xuất tự động từ hệ thống nhận diện AI</em></p>
+            <br>
+            <table border="1" cellpadding="10" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+                <tr style="background-color: #ecf0f1;">
+                    <th>Chỉ số thống kê</th>
+                    <th>Số lượng (Quả)</th>
+                </tr>
+                <tr>
+                    <td><strong>Tổng số thành phẩm đã quét</strong></td>
+                    <td style="text-align: center;"><strong>${totalScans}</strong></td>
+                </tr>
+                <tr>
+                    <td>Số lượng Cà chua TỐT (Đủ tiêu chuẩn đóng gói)</td>
+                    <td style="text-align: center; color: green;">${goodTomatoes}</td>
+                </tr>
+                <tr>
+                    <td>Số lượng Cà chua HỎNG (Chuyển sang khu ủ phân)</td>
+                    <td style="text-align: center; color: red;">${badTomatoes}</td>
+                </tr>
+            </table>
+            <br>
+            <h3>Phân tích tỷ lệ:</h3>
+            <ul>
+                <li>Tỷ lệ thành phẩm TỐT: <strong>${Math.round((goodTomatoes/totalScans)*100)}%</strong></li>
+                <li>Tỷ lệ hàng HỎNG/LỖI: <strong>${Math.round((badTomatoes/totalScans)*100)}%</strong></li>
+            </ul>
+            <p><strong>Đánh giá nguyên nhân lỗi phổ biến:</strong> Các thành phẩm hỏng chủ yếu do dập nát trong quá trình vận chuyển hoặc xuất hiện vết nấm mốc đen trên vỏ.</p>
+        `;
+        
+        const sourceHTML = header + content + footer;
+        const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+        
+        // Tạo file và tự động tải xuống
+        const fileDownload = document.createElement("a");
+        document.body.appendChild(fileDownload);
+        fileDownload.href = source;
+        fileDownload.download = 'Bao_Cao_AI_Ca_Chua.doc';
+        fileDownload.click();
+        document.body.removeChild(fileDownload);
     }
 </script>
 
